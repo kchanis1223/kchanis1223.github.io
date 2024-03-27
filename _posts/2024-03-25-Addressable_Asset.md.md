@@ -136,3 +136,6 @@ public void ReleasePrefab() // 번들 해제시 Release 함수를 이용할 수 
     }
 }
 ```
+#### 알아두면 좋을 특징
+- 참고 : <https://blog.naver.com/cdw0424/221764918184>
+- 참고 : <https://blog.naver.com/cdw0424/221764918184>
