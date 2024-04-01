@@ -101,7 +101,7 @@ public void DownloadDependenciesAsync(object key)
 ```
 <br></br>
 
-##### Asset Load
+#### Asset Load
 ```c#
 public void LoadAssetAsync(object key)
 {
@@ -118,7 +118,7 @@ public void LoadAssetAsync(object key)
 ```
 <br></br>
 
-##### Addressable Prefab assign and release
+#### Addressable Prefab assign and release
 ```c#
 public AssetReference SpawnablePrefab;
 
@@ -136,6 +136,149 @@ public void ReleasePrefab() // 번들 해제시 Release 함수를 이용할 수 
     }
 }
 ```
+<br>
+
 #### 알아두면 좋을 특징
 - 참고 : <https://blog.naver.com/cdw0424/221764918184>
 - 참고 : <https://blog.naver.com/cdw0424/221764918184>
+
+<br>
+<br>
+
+### Local에서 실습해보기
+
+1. Window > Package Manager > Package : Unity Registery 의 Addressables 설치하기 <br>
+
+![](./image/addressable_post/addressable2.png)
+<br>
+<br>
+2. Window > Asset Management > Addressables > Groups 으로 Addressable Groups 창 열기 (여기서 대부분을 관리함 ) <br>
+
+![](./image/addressable_post/addressable1.png)
+<br>
+<br>
+3. Addressable Groups창에서 Addressable Profiles 창 열기 ( 서버를 사용할 때 주소를 입력하는 곳 )<br>
+
+![](./image/addressable_post/addressable3.png)
+<br>
+<br>
+4. Addressable Groups에서 개별 그룹 클릭 시, 그룹 별로 Inspector를 관리할 수 있음. <br><br>
+**Build & Load Paths** : Remote로 설정
+**Cached Clear Behavior** : "Clear When When New Version Loaded" 설정 시, 기존에 만들어져 있는 번들의 변경사항에 대해서 새로운 저장 파일을 만듬.<br><br>
+
+![](./image/addressable_post/addressable4.png)
+<br>
+<br>
+5. Inspector 의 Inspect Top Level Settings 클릭 시, 전체 설정 관리 가능.<br><br>
+**Unique Bundle IDs** : 빌드 때마다 새로운 에셋 추가에 대해서만 적용해줌.<br>
+**Send Profiler Events** : 이벤트 뷰어창을 통해 상태를 확인할 수 있음. <br>
+**Build Remote Cataglog** : 카탈로그의 사본을 생성하고 서버를 통해 불러올 수 있음. <br>
+**Build & Load Paths** : Remote로 설정.<br><br>
+
+![](./image/addressable_post/addressable5.png)
+<br>
+<br>
+
+6. Addressables을 적용할 프리팹에 Inspector 창에서 Addressable 항목 체크 <br>
+: Addressable Group 창에서 추가된 프리팹 확인 가능. material들은 따로 addressable 체크 해주어야 한다. <br>
+
+
+![](./image/addressable_post/addressable7.png)
+
+![](./image/addressable_post/addressable6.png)
+<br>
+<br>
+
+7. C# 스크립트 작성.<br>
+
+```c#
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.AddressableAssets;
+
+public class AddressableManager : MonoBehaviour
+{
+    [SerializeField]
+    private AssetReferenceGameObject[] Objs;
+
+    private List<GameObject> gameObjects = new List<GameObject>(); // 불러온 오브젝트를 담을 리스트
+    void Start()
+    {
+        StartCoroutine(InitAddressable());
+    }
+    IEnumerator InitAddressable()
+    {
+        var init = Addressables.InitializeAsync();
+        yield return init;
+    }
+    public void BT_spawn() // Spawn
+    {
+        for(int i = 0; i < Objs.Length; i++)
+        {
+            Objs[i].InstantiateAsync().Completed += (obj) => // 람다 함수 사용
+            {
+                gameObjects.Add(obj.Result);
+            };
+        }
+    }
+     public void BT_Release()
+    {
+         if (gameObjects.Count == 0) return;
+        var index = gameObjects.Count - 1;
+        Addressables.ReleaseInstance(gameObjects[index]);
+        gameObjects.RemoveAt(index);
+        //만약 오디오나 이미지 파일이 있다면 ~.ReleaseAsset(); 으로 해제가능.
+    }
+}
+```
+<br>
+<br>
+
+8. Addressables Group에 가서 Build > New Build > Default Build Script 클릭, Play Mode Script -> Use Asset Database 클릭.<br>
+
+
+![](./image/addressable_post/addressable8.png)
+
+<br>
+<br>
+<br>
+
+### 서버에서 실습해보기
+1. AWS의 S3 버킷을 만들고 서버로 사용 할 수 있도록 설정한다. <br>
+2. S3 주소 URL를 Addressable Profiles 의 Remote 클릭, Custom 클릭, Remote.LoadPath에 URL 입력한다. <br>
+
+![](./image/addressable_post/addressable9.png)
+
+<br>
+
+* Default Local Group과 AddressableAassetSettings의 Build & Load Paths가 Remote로 설정되어 있는지 확인.
+<br>
+<br>
+<br>
+
+
+3. Addressables Group 창에서 Build > New Build > Default Build Script 실행. (만약 기존에 로컬환경에서 사용한 것이 있다면, Build > Clear Build Cache 후, ServerData/StandaloneWindows64 폴더를 삭제하고 진행 ) <br><br>
+
+4. 새로 만들어진 ServerData/StandaloneWindow64 폴더를 S3에 업로드. <br>
+
+![](./image/addressable_post/addressable10.png)
+
+<br>
+
+5. Addressables Group 창에서 Play Mode Script > Use Exiting Build 선택 후 실행.
+
+<br>
+<br>
+
+* 이후 플레이 시, C:/User/User/Appdata/LocalLow/Unity/ProjectName 에서 내려받은 파일들을 확인 할 수 있다.
+
+<br>
+<br>
+
+* 실습 참고 : <https://www.youtube.com/watch?v=uTSxPPaW2-k>
+
+
+
+
+
