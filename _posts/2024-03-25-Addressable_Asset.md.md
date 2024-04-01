@@ -149,24 +149,27 @@ public void ReleasePrefab() // 번들 해제시 Release 함수를 이용할 수 
 
 1. Window > Package Manager > Package : Unity Registery 의 Addressables 설치하기 <br>
 
-![](./image/addressable_post/addressable2.png)
+![](https://github.com/kchanis1223/kchanis1223.github.io/blob/master/_posts/image/addressable_post/addressable2.png?raw=true)
+
 <br>
 <br>
 2. Window > Asset Management > Addressables > Groups 으로 Addressable Groups 창 열기 (여기서 대부분을 관리함 ) <br>
 
-![](./image/addressable_post/addressable1.png)
+![](https://github.com/kchanis1223/kchanis1223.github.io/blob/master/_posts/image/addressable_post/addressable1.png?raw=true)
 <br>
 <br>
 3. Addressable Groups창에서 Addressable Profiles 창 열기 ( 서버를 사용할 때 주소를 입력하는 곳 )<br>
 
-![](./image/addressable_post/addressable3.png)
+![](https://github.com/kchanis1223/kchanis1223.github.io/blob/master/_posts/image/addressable_post/addressable3.png?raw=true)
+
 <br>
 <br>
 4. Addressable Groups에서 개별 그룹 클릭 시, 그룹 별로 Inspector를 관리할 수 있음. <br><br>
 **Build & Load Paths** : Remote로 설정
 **Cached Clear Behavior** : "Clear When When New Version Loaded" 설정 시, 기존에 만들어져 있는 번들의 변경사항에 대해서 새로운 저장 파일을 만듬.<br><br>
 
-![](./image/addressable_post/addressable4.png)
+![](https://github.com/kchanis1223/kchanis1223.github.io/blob/master/_posts/image/addressable_post/addressable4.png?raw=true)
+
 <br>
 <br>
 5. Inspector 의 Inspect Top Level Settings 클릭 시, 전체 설정 관리 가능.<br><br>
@@ -175,7 +178,8 @@ public void ReleasePrefab() // 번들 해제시 Release 함수를 이용할 수 
 **Build Remote Cataglog** : 카탈로그의 사본을 생성하고 서버를 통해 불러올 수 있음. <br>
 **Build & Load Paths** : Remote로 설정.<br><br>
 
-![](./image/addressable_post/addressable5.png)
+![](https://github.com/kchanis1223/kchanis1223.github.io/blob/master/_posts/image/addressable_post/addressable5.png?raw=true)
+
 <br>
 <br>
 
@@ -183,9 +187,10 @@ public void ReleasePrefab() // 번들 해제시 Release 함수를 이용할 수 
 : Addressable Group 창에서 추가된 프리팹 확인 가능. material들은 따로 addressable 체크 해주어야 한다. <br>
 
 
-![](./image/addressable_post/addressable7.png)
+![](https://github.com/kchanis1223/kchanis1223.github.io/blob/master/_posts/image/addressable_post/addressable7.png?raw=true)
 
-![](./image/addressable_post/addressable6.png)
+![](https://github.com/kchanis1223/kchanis1223.github.io/blob/master/_posts/image/addressable_post/addressable6.png?raw=true)
+
 <br>
 <br>
 
@@ -238,7 +243,8 @@ public class AddressableManager : MonoBehaviour
 8. Addressables Group에 가서 Build > New Build > Default Build Script 클릭, Play Mode Script -> Use Asset Database 클릭.<br>
 
 
-![](./image/addressable_post/addressable8.png)
+![](https://github.com/kchanis1223/kchanis1223.github.io/blob/master/_posts/image/addressable_post/addressable8.png?raw=true)
+
 
 <br>
 <br>
@@ -248,7 +254,7 @@ public class AddressableManager : MonoBehaviour
 1. AWS의 S3 버킷을 만들고 서버로 사용 할 수 있도록 설정한다. <br>
 2. S3 주소 URL를 Addressable Profiles 의 Remote 클릭, Custom 클릭, Remote.LoadPath에 URL 입력한다. <br>
 
-![](./image/addressable_post/addressable9.png)
+![](https://github.com/kchanis1223/kchanis1223.github.io/blob/master/_posts/image/addressable_post/addressable9.png?raw=true)
 
 <br>
 
@@ -262,7 +268,7 @@ public class AddressableManager : MonoBehaviour
 
 4. 새로 만들어진 ServerData/StandaloneWindow64 폴더를 S3에 업로드. <br>
 
-![](./image/addressable_post/addressable10.png)
+![](https://github.com/kchanis1223/kchanis1223.github.io/blob/master/_posts/image/addressable_post/addressable10.png?raw=true)
 
 <br>
 
