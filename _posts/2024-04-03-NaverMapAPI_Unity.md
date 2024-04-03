@@ -64,7 +64,73 @@ render_with_liquid: false
 <br>
 
 #### C# script : MapManager
+- Map parameter에 해당하는 값을 유니티에서 넣어주면 잘 동작하는 것을 확인 할 수 있다.
+```c#
+public class MapManager : MonoBehaviour
+{
+    public RawImage mapRawImage;
 
+    [Header("Map parameter")]
+    public string baseURL;
+    public string APIKey = "";
+    public string secretKey = "";
+    public string latitude;
+    public string longitude;
+    public int zoomLevel = 13;
+    public int mapWidth;
+    public int mapHeight;
+    public int scale;
+    public 
+    void Start()
+    {
+        mapRawImage = GetComponent<RawImage>();
+        StartCoroutine(MapLoader());
+    }
+    IEnumerator MapLoader()
+    {
+        string sendUrl = baseURL + "?w=" + mapWidth.ToString() + "&h=" + mapHeight.ToString() +
+            "&center=" + longitude + "," + latitude + "&level=" + zoomLevel.ToString() +"&scale=" + scale;
+
+        Debug.Log(sendUrl);
+
+        UnityWebRequest request = UnityWebRequestTexture.GetTexture(sendUrl);
+        request.SetRequestHeader("X-NCP-APIGW-API-KEY-ID", APIKey);
+        request.SetRequestHeader("X-NCP-APIGW-API-KEY", secretKey);
+
+        yield return request.SendWebRequest();
+
+        if(request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
+        {
+            Debug.Log(request.error);
+        }
+        else
+        {
+            mapRawImage.texture = DownloadHandlerTexture.GetContent(request);
+        }
+    }
+}
+```
+<br>
+<br>
+
+![](https://github.com/kchanis1223/kchanis1223.github.io/blob/master/_posts/image/XSaverProject/naverMap3.png?raw=true)
+
+<br>
+<br>
+
+- 인하대 하이테크의 위도,경도. 줌 레벨 15 , 고해상도, 300 * 300 pixel 설정. (위도와 경도 입력시 소수점 7자리까지 입력해야 함 )
+
+<br>
+
+![](https://github.com/kchanis1223/kchanis1223.github.io/blob/master/_posts/image/XSaverProject/naverMap4.png?raw=true)
+
+<br>
+
+### 2. Navigator Message
+
+경로 안내 기능을 구현하기에는 Naver API 중, Direction5 가 적절한 것 같다.
+
+#### 요청 형식과 파라미터
 
 
 
