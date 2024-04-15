@@ -282,6 +282,292 @@ public class AddressableManager : MonoBehaviour
 <br>
 <br>
 
+6. 추가로 Scene 자체도 Addressable 적용이 가능한데, 메뉴씬과 로딩씬을 나누어 추가하였다. <br>
+Addressable Key 방식과 Asset Reference 방식으로 호출할 수 있는데, Asset Reference 방식을 사용하였다.
+<br>
+<br>
+
+-  Lobby Scene & LobbyManager.cs
+
+![](https://github.com/kchanis1223/kchanis1223.github.io/blob/master/_posts/image/addressable_post/addressable11.png?raw=true)
+
+```c#
+public class LobbyManager : MonoBehaviour
+{
+    public void BT_Start()
+    {
+        SceneManager.LoadScene("Down");
+    }
+}
+```
+<br>
+
+![](https://github.com/kchanis1223/kchanis1223.github.io/blob/master/_posts/image/addressable_post/addressable12.png?raw=true)
+
+- Download Scene & DownManager.cs
+
+```c#
+public class DownManager : MonoBehaviour
+{
+    [Header("UI")]
+    public GameObject waitMessage;
+    public GameObject downMessage;
+
+    public Slider downSlider;
+    public Text sizeInfoText;
+    public Text downValText;
+
+    [Header("Label")]
+    public AssetLabelReference defaultLabel;
+    public AssetLabelReference matLabel;
+
+    private long patchSize;
+    private Dictionary<string, long> patchMap = new Dictionary<string, long>();
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        waitMessage.SetActive(true);
+        downMessage.SetActive(false);
+        StartCoroutine(InitAddressable());
+        StartCoroutine(CheckUpdateFiles());
+    }
+    IEnumerator InitAddressable()
+    {
+        var init = Addressables.InitializeAsync();
+        yield return init;
+    }
+    #region CheckDownload
+    IEnumerator CheckUpdateFiles()
+    {
+        var labels = new List<string>() { defaultLabel.labelString, matLabel.labelString };
+
+        patchSize = default;
+
+        foreach (var label in labels)
+        {
+            var handle = Addressables.GetDownloadSizeAsync(label);
+
+            yield return handle;
+
+            patchSize += handle.Result;
+        }
+
+        if(patchSize > decimal.Zero)
+        {
+            waitMessage.SetActive(false);
+            downMessage.SetActive(true);
+            sizeInfoText.text = GetFileSize(patchSize);
+        }
+        else
+        {
+            downValText.text = " 100% ";
+            downSlider.value = 1f;
+            yield return new WaitForSeconds(2f);
+            LoadingManager.LoadScene("Main");
+        }
+
+    }
+
+    private string GetFileSize(long byteCnt)
+    {
+        string size = "0 Bytes";
+        if(byteCnt >=1073741824.0)
+        {
+            size = string.Format("{0:##.##}", byteCnt / 1073741824.0) + " GB";
+        }
+        else if (byteCnt >= 1048576.0)
+        {
+            size = string.Format("{0:##.##}", byteCnt / 10485764.0) + " MB";
+        }
+        else if (byteCnt >= 1024.0)
+        {
+            size = string.Format("{0:##.##}", byteCnt / 1024.0) + " KB";
+        }
+        else if (byteCnt < 1024.0 && byteCnt > 0)
+        {
+            size = byteCnt.ToString() + " Byte";
+        }
+        return size;
+    }
+
+    #endregion CheckDownload
+
+    #region Download
+    public void BT_Download()
+    {
+        StartCoroutine(PatchFiles());
+    }
+    IEnumerator PatchFiles()
+    {
+        var labels = new List<string>() { defaultLabel.labelString, matLabel.labelString };
+
+        foreach (var label in labels)
+        {
+            var handle = Addressables.GetDownloadSizeAsync(label);
+            yield return handle;
+           
+            if(handle.Result != decimal.Zero)
+            {
+                StartCoroutine(DownLoadLabel(label));
+            }
+        }
+        yield return CheckDownLoad();
+    }
+    IEnumerator DownLoadLabel(string label)
+    {
+        patchMap.Add(label, 0);
+        var handle = Addressables.DownloadDependenciesAsync(label, false);
+
+        while (!handle.IsDone)
+        {
+            patchMap[label] = handle.GetDownloadStatus().DownloadedBytes;
+            yield return new WaitForEndOfFrame();
+        }
+        patchMap[label] = handle.GetDownloadStatus().TotalBytes;
+        Addressables.Release(handle);
+    }
+
+    #endregion Download
+
+    IEnumerator CheckDownLoad()
+    {
+        var total = 0f;
+        downValText.text = "0 %";
+        while(true)
+        {
+            total += patchMap.Sum(tmp => tmp.Value);
+            downSlider.value = total / patchSize;
+            downValText.text = (int)(downSlider.value * 100) + " %";
+
+            if(total == patchSize)
+            {
+                LoadingManager.LoadScene("Main");
+                break;
+            }
+            total = 0f;
+            yield return new WaitForEndOfFrame();
+        }
+
+    }
+}
+```
+##### 다운로드할 파일의 크기와 다운로드 정도를 나타내려 하였지만, Addressables Groups의 Labels 을 이용하는 부분에서 오류가 생겨 잘 되지 않았다. 이후에 수정이 필요함.
+
+<br>
+
+- Loading Scene & LoadManager.cs
+
+![](https://github.com/kchanis1223/kchanis1223.github.io/blob/master/_posts/image/addressable_post/addressable13.png?raw=true)
+
+```c#
+public class LoadingManager : MonoBehaviour
+{
+    public static string nextScene;
+    public Slider loadingBar;
+    void Start()
+    {
+        StartCoroutine(StartLoadingScene());
+    }
+    IEnumerator StartLoadingScene()
+    {
+        yield return null;
+        AsyncOperation op = SceneManager.LoadSceneAsync(nextScene);
+        op.allowSceneActivation = false;
+
+        float timer = 0f;
+        while (!op.isDone)
+        {
+            yield return null;
+            timer += Time.deltaTime;
+            if(op.progress < 0.9f)
+            {
+                loadingBar.value = Mathf.Lerp(loadingBar.value, op.progress, timer);
+
+                if(loadingBar.value >= op.progress)
+                {
+                    timer = 0f;
+                }
+            }
+            else
+            {
+                loadingBar.value = Mathf.Lerp(loadingBar.value, 1f, timer);
+                if(loadingBar.value == 1f)
+                {
+                    yield return new WaitForSeconds(2f);
+                    op.allowSceneActivation = true;
+                    yield break;
+                }
+            }
+        }
+    }
+    public static void LoadScene(string sceneName)
+    {
+        nextScene = sceneName;
+        SceneManager.LoadScene("Loading");
+    }
+
+}
+```
+
+- Main Scene & MainManager.cs
+
+![](https://github.com/kchanis1223/kchanis1223.github.io/blob/master/_posts/image/addressable_post/addressable14.png?raw=true)
+
+![](https://github.com/kchanis1223/kchanis1223.github.io/blob/master/_posts/image/addressable_post/addressable15.png?raw=true)
+
+```c#
+public class AddressableManager : MonoBehaviour
+{
+    [SerializeField]
+    private AssetReferenceGameObject[] Objs;
+    public AssetReference addressScene;
+    private AsyncOperationHandle<SceneInstance> _handle;
+
+    private List<GameObject> gameObjects = new List<GameObject>(); // 불러온 오브젝트를 담을 리스트
+    void Start()
+    {
+       
+    }
+   
+    public void BT_LoadNewScene()
+    {
+       addressScene.LoadSceneAsync(LoadSceneMode.Additive).Completed += (handle) =>
+        {
+            if (handle.Status == AsyncOperationStatus.Succeeded)
+            {
+                _handle = handle;
+            }
+        };
+    }
+    public void BT_UnloadedNewScene()
+    {
+        Addressables.UnloadSceneAsync(_handle).Completed -= (handle) =>
+        {
+            Resources.UnloadUnusedAssets();
+        };
+    }
+    public void BT_spawn()
+    {
+        for(int i = 0; i < Objs.Length; i++)
+        {
+            Objs[i].InstantiateAsync().Completed += (obj) => // 람다 함수 사용
+            {
+                gameObjects.Add(obj.Result);
+            };
+        }
+    }
+    public void BT_Release()
+    {
+        if (gameObjects.Count == 0) return;
+        var index = gameObjects.Count - 1;
+        Addressables.ReleaseInstance(gameObjects[index]);
+        gameObjects.RemoveAt(index);
+        //만약 오디오나 이미지 파일이 있다면 ~.ReleaseAsset(); 으로 해제가능.
+    }
+}
+```
+
 * 실습 참고 : <https://www.youtube.com/watch?v=uTSxPPaW2-k>
 
 
