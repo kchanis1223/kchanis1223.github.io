@@ -1,9 +1,9 @@
 ---
-title: Nreal light에서 지도 및 길찾기 구현하기
+title: Naver Map API 이용하여 지도 및 길찾기 구현하기
 date: 2024-04-02 16:00:00 +0800
 categories: [Project, 게임엔진/Unity]
 tags: [writing]
-description: 스마트 헬멧에 들어갈 기능 중, 지도와 길찾기 기능의 구현
+description: 스마트 헬멧에 들어갈 기능 중, 지도와 길찾기 기능의 구현을 위해 Naver Map API 적용하기
 render_with_liquid: false
 ---
 
@@ -31,6 +31,7 @@ render_with_liquid: false
 <br>
 
 - Naver Map API 
+
  1. 네이버클라우드 접속 후 회원가입 진행. <br>
 
  2. 네이버 클라우드 콘솔창에서 AI-Naver-API에서 새로운 Application 생성. <br>
@@ -132,7 +133,57 @@ public class MapManager : MonoBehaviour
 
 #### 요청 형식과 파라미터
 
+- startPoint , destPoint : "위도,경도" 소수점 7자리까지 표현하고 공백없이 ','로 연결하여 사용.
+- navyOption : 경로 탐색 방법 설정. "traoptimal" -> 최적경로
 
+- 지도와 마찬가지로 요청 헤더를 추가하고 사용.
+
+#### C# script 
+
+```c#
+
+ IEnumerator StartNavigate()
+{
+    string sendUrl = navyAPIbaseURL + "?start=" + startPoint + "&goal=" + destPoint + "&option=" + navyOption;
+
+    Debug.Log(sendUrl);
+
+    UnityWebRequest request = UnityWebRequest.Get(sendUrl);
+    request.SetRequestHeader("X-NCP-APIGW-API-KEY-ID", APIKey);
+    request.SetRequestHeader("X-NCP-APIGW-API-KEY", secretKey);
+
+    yield return request.SendWebRequest();
+
+    if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
+    {
+        Debug.Log(request.error);
+    }
+    else
+    {
+        var text = request.downloadHandler.text;
+        Debug.Log(text);
+    }
+}
+
+```
+<br>
+
+ 요청과 응답은 잘 되었으나, 생각치 못한 문제가 발생하였다.
+
+<br>
+
+![](https://github.com/kchanis1223/kchanis1223.github.io/blob/master/_posts/image/XSaverProject/naverMap5.png?raw=true)
+
+<br>
+
+출발지와 도착지의 위도,경도 값이 도로가 아니면 경로 탐색을 하지 못하였다. <br>
+
+자전거의 특성상 도로가 아닌 곳에서 동작을 수행해야 될 때가 많다. <br>
+
+
+-> Naver API 공식 문서를 찾아보니, 자동차 길찾기 외 기능은 추후 제공예정이라고 안내되어 있었다. <br>
+
+따라서 길찾기 기능을 위해서는 다른 API를 쓰는것이 나을 것 같다.
 
 
 
