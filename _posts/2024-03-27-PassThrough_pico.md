@@ -12,7 +12,7 @@ render_with_liquid: false
 ### 현재 직면한 문제점
 &rightarrow; pico4 에 전면카메라 (passthrough 기능을 위한) 가 내장되어 있음에도 불구하고, 카메라를 통한 이미지 데이터를 얻을 수가 없다. (maybe 사생활 침해 이슈 때문)<br>
 먼저 Pico Unity Integration SDK에서 Pico HMD의 패스쓰루 기능의 구현방식을 설명한 것을 보면, <br></br>
-![](./image/picoSeethrough.png)
+![](https://github.com/kchanis1223/kchanis1223.github.io/blob/master/_posts/image/picoSeethrough.png?raw=true)
 
 Virtual Scene을 제공하는 부분과, Real Scene(패스쓰루 부분)을 제공하는 부분이 나누어져 있고 , 제공되는 SDK에서 두 부분을 합쳐서 보여준다고 되어있다. 즉, 가상환경 레이어와 패스쓰루 레이어를 구분한 뒤, SDK에서 하나의 레이어로 합친다는 뜻 같다. <br>
 
